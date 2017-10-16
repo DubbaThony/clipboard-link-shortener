@@ -1,0 +1,6 @@
+<RCC>
+    <qresource prefix="/ico">
+        <file>url_off.ico</file>
+        <file>url_on.ico</file>
+    </qresource>
+</RCC>
