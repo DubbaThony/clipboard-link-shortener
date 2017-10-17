@@ -5,6 +5,8 @@
 #include <QString>
 #include <QNetworkReply>
 #include <QSystemTrayIcon>
+#include <QEvent>
+#include <QSystemTrayIcon>
 
 namespace Ui {
 	class MainWindow;
@@ -20,6 +22,8 @@ public:
 public slots:
 	void on_clipboard_change();
 
+	void showUp();
+
 private slots:
 	void on_Toggle_clicked();
 
@@ -29,7 +33,9 @@ private slots:
 
 	void toggle();
 
-	void showUp();
+	bool on_sys_tray_click(enum QSystemTrayIcon::ActivationReason reason);
+
+	void on_actionExit_triggered();
 
 private:
 	Ui::MainWindow *ui;

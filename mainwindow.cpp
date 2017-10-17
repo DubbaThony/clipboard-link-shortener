@@ -6,17 +6,35 @@
 #include <QNetworkRequest>
 #include <QNetworkReply>
 #include <QSystemTrayIcon>
+#include <QMenu>
+#include <QAction>
 
 MainWindow::MainWindow(QWidget *parent) :
 	QMainWindow(parent),
 	ui(new Ui::MainWindow)
 {
 	ui->setupUi(this);
-	trayIcon = new QSystemTrayIcon;
+	this->setWindowIcon(QIcon(":/ico/url_off.ico"));
 
+	QAction *showAction = new QAction(tr("&Show"), this);
+	connect(showAction, &QAction::triggered, this, &MainWindow::showUp);
+
+	QAction *exitAction = new QAction(tr("&Exit"), this);
+	connect(exitAction, &QAction::triggered, this, &MainWindow::on_actionExit_triggered);
+
+	QMenu * trayMenu = new QMenu; /*its in constructor so I dont need pointer for that later down the linea*/
+	trayMenu->addAction(showAction);
+	trayMenu->addAction(exitAction);
+
+	trayIcon = new QSystemTrayIcon;
+	trayIcon->setContextMenu(trayMenu);
 	trayIcon->setIcon(QIcon(":/ico/url_off.ico"));
-	//trayIcon->
+
+
+	connect(trayIcon, &QSystemTrayIcon::activated, this, &MainWindow::on_sys_tray_click);
+
 	trayIcon->show();
+
 
 	connect(QApplication::clipboard(), SIGNAL(dataChanged()), this, SLOT(on_clipboard_change()));
 	ui->statusBar->showMessage("Disabled");
@@ -73,11 +91,13 @@ void MainWindow::on_Toggle_clicked()
 		enabled = false;
 		ui->statusBar->showMessage("Disabled");
 		trayIcon->setIcon(QIcon(":/ico/url_off.ico")); //mem leak?
+		this->setWindowIcon(QIcon(":/ico/url_off.ico"));
 	}
 	else{
 		enabled = true;
 		ui->statusBar->showMessage("Enabled");
 		trayIcon->setIcon(QIcon(":/ico/url_on.ico")); //mem leak?
+		this->setWindowIcon(QIcon(":/ico/url_on.ico"));
 	}
 }
 
@@ -108,5 +128,24 @@ void MainWindow::toggle(){
 }
 
 void MainWindow::showUp(){
-	this->show();
+	if(this->isHidden())
+		this->show();
+	else
+		this->hide();
+}
+
+bool MainWindow::on_sys_tray_click(enum QSystemTrayIcon::ActivationReason reason){
+	if(reason == QSystemTrayIcon::Trigger){
+		this->on_Toggle_clicked();
+		return false;
+	} else if(reason == QSystemTrayIcon::DoubleClick){
+		this->showUp();
+		return false;
+	} else {
+		return true;
+	}
+}
+
+void MainWindow::on_actionExit_triggered(){
+	qApp->exit();
 }
