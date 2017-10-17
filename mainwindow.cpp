@@ -8,6 +8,7 @@
 #include <QSystemTrayIcon>
 #include <QMenu>
 #include <QAction>
+#include <QThread>
 
 MainWindow::MainWindow(QWidget *parent) :
 	QMainWindow(parent),
@@ -48,6 +49,10 @@ MainWindow::~MainWindow()
 
 void MainWindow::on_clipboard_change(){
 
+	QThread::msleep(1); //workaround to let the OS finish handling the clipboard
+
+	QString text = QGuiApplication::clipboard()->text();
+
 	if(!enabled) return;
 
 	if(processingDone){
@@ -59,21 +64,24 @@ void MainWindow::on_clipboard_change(){
 
 	processing = true;
 
-	QClipboard *clipboard = QGuiApplication::clipboard(); //memory leak?
-
-	if(clipboard->text().mid(0,7) != "http://" && clipboard->text().mid(0,8) != "https://" && clipboard->text() != this->lastConsidered){
+	if(text.mid(0,7) != "http://" && text.mid(0,8) != "https://" && text != this->lastConsidered){
 		processing = false;
 		return;
 	}
+
+	trayIcon->showMessage("The link is beeing processed",
+						  "Your link will be shortened in a second...",
+						  QSystemTrayIcon::Information,
+						  2500);
 
 	QNetworkAccessManager *manager = new QNetworkAccessManager();
 	QNetworkRequest request;
 	QString fullUrl;
 
 	if(ui->base64->isChecked())
-		fullUrl = this->ui->call_URI->text() + "=" + clipboard->text().toUtf8().toBase64();
+		fullUrl = this->ui->call_URI->text() + "=" + text.toUtf8().toBase64();
 	else
-		fullUrl = this->ui->call_URI->text() + "=" + clipboard->text();
+		fullUrl = this->ui->call_URI->text() + "=" + text;
 
 	request.setUrl(QUrl(fullUrl));
 
