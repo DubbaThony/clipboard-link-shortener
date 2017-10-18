@@ -15,9 +15,11 @@ MainWindow::MainWindow(QWidget *parent) :
 	ui(new Ui::MainWindow)
 {
 	ui->setupUi(this);
+	ui->statusBar->showMessage("Initializing");
+
 	this->setWindowIcon(QIcon(":/ico/url_off.ico"));
 
-	QAction *showAction = new QAction(tr("&Show"), this);
+	QAction *showAction = new QAction(tr("&Show/Hide"), this);
 	connect(showAction, &QAction::triggered, this, &MainWindow::showUp);
 
 	QAction *exitAction = new QAction(tr("&Exit"), this);
@@ -35,6 +37,11 @@ MainWindow::MainWindow(QWidget *parent) :
 	connect(trayIcon, &QSystemTrayIcon::activated, this, &MainWindow::on_sys_tray_click);
 
 	trayIcon->show();
+
+	this->networkManager = new QNetworkAccessManager();
+
+	connect(this->networkManager, SIGNAL(finished(QNetworkReply*)), this,
+					 SLOT(on_responseFromServer(QNetworkReply*)));
 
 
 	connect(QApplication::clipboard(), SIGNAL(dataChanged()), this, SLOT(on_clipboard_change()));
@@ -74,7 +81,6 @@ void MainWindow::on_clipboard_change(){
 						  QSystemTrayIcon::Information,
 						  2500);
 
-	QNetworkAccessManager *manager = new QNetworkAccessManager();
 	QNetworkRequest request;
 	QString fullUrl;
 
@@ -86,10 +92,8 @@ void MainWindow::on_clipboard_change(){
 	request.setUrl(QUrl(fullUrl));
 
 
-	manager->get(request);
+	this->networkManager->get(request);
 
-	connect(manager, SIGNAL(finished(QNetworkReply*)), this,
-					 SLOT(on_responseFromServer(QNetworkReply*)));
 
 }
 
@@ -119,6 +123,7 @@ void MainWindow::on_responseFromServer(QNetworkReply *reply){
 						  QSystemTrayIcon::Information,
 						  2500);
 	processingDone = true;
+	delete reply;
 }
 
 

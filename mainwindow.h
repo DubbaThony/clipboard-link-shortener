@@ -7,6 +7,7 @@
 #include <QSystemTrayIcon>
 #include <QEvent>
 #include <QSystemTrayIcon>
+#include <QNetworkAccessManager>
 
 namespace Ui {
 	class MainWindow;
@@ -43,6 +44,7 @@ private:
 	QString currentURI = "";
 	QString lastConsidered = "";
 	QSystemTrayIcon * trayIcon = 0;
+	QNetworkAccessManager *networkManager;
 
 	bool enabled = false;
 	bool processing = false;
